@@ -1,6 +1,7 @@
 import { agents } from '@/mocks/data/agents'
 import { AgentStatusBadge } from '@/components/shared/StatusBadge'
 import { Users, Bot, ArrowRight } from 'lucide-react'
+import { LegalBlueprint } from './LegalBlueprint'
 
 const departments = ['Insurance Ops', 'Finance', 'HR', 'Legal', 'Customer Success']
 
@@ -40,6 +41,9 @@ export function WorkforceBlueprintPage() {
       <div className="space-y-4">
         {departments.map(dept => {
           const deptAgents = agents.filter(a => a.department === dept)
+          if (dept === 'Legal') {
+            return <LegalBlueprint key={dept} agents={deptAgents} />
+          }
           return (
             <div key={dept} className="bg-surface border border-border rounded-2xl shadow-[var(--shadow-card)] overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-border">
