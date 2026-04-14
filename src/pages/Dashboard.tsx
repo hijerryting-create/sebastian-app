@@ -21,7 +21,7 @@ export function Dashboard() {
 
         {/* Center heartbeat overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Heartbeat agentCount={deployedAgents.length} />
+          <Heartbeat agents={agents} />
         </div>
 
         {/* Floating stats */}

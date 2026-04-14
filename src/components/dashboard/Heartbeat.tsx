@@ -1,19 +1,40 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { Agent } from '@/types'
+import { formatCurrency, formatPercent } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface HeartbeatProps {
-  agentCount: number
+  agents: Agent[]
 }
 
-export function Heartbeat({ agentCount }: HeartbeatProps) {
+const CARD_POSITIONS = [
+  'top-0 left-1/2 -translate-x-1/2 -translate-y-[calc(100%+32px)]',       // top center
+  'top-1/2 right-0 translate-x-[calc(100%+32px)] -translate-y-1/2',        // right
+  'bottom-0 left-1/2 -translate-x-1/2 translate-y-[calc(100%+32px)]',      // bottom center
+  'top-1/2 left-0 -translate-x-[calc(100%+32px)] -translate-y-1/2',        // left
+  'top-0 right-0 translate-x-[calc(100%+16px)] -translate-y-[calc(100%-16px)]', // top-right
+]
+
+const STATUS_COLORS: Record<string, string> = {
+  deployed: 'bg-success',
+  draft: 'bg-accent',
+  paused: 'bg-warning',
+  error: 'bg-danger',
+}
+
+export function Heartbeat({ agents }: HeartbeatProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const navigate = useNavigate()
+  const deployedAgents = agents.filter(a => a.status === 'deployed')
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')!
     const dpr = window.devicePixelRatio || 1
-    const W = 280
-    const H = 120
+    const W = 260
+    const H = 80
 
     canvas.width = W * dpr
     canvas.height = H * dpr
@@ -25,7 +46,6 @@ export function Heartbeat({ agentCount }: HeartbeatProps) {
     let animId: number
 
     function ekg(x: number): number {
-      // Simulate EKG waveform
       const cycle = x % 1
       if (cycle < 0.1) return 0
       if (cycle < 0.15) return -8
@@ -44,7 +64,6 @@ export function Heartbeat({ agentCount }: HeartbeatProps) {
       ctx.clearRect(0, 0, W, H)
       const midY = H / 2
 
-      // Draw EKG trace
       ctx.beginPath()
       ctx.strokeStyle = '#4700DE'
       ctx.lineWidth = 2
@@ -59,7 +78,6 @@ export function Heartbeat({ agentCount }: HeartbeatProps) {
       }
       ctx.stroke()
 
-      // Glow trail behind the leading edge
       const gradient = ctx.createLinearGradient(W - 60, 0, W, 0)
       gradient.addColorStop(0, 'rgba(71, 0, 222, 0)')
       gradient.addColorStop(1, 'rgba(71, 0, 222, 0.4)')
@@ -74,15 +92,12 @@ export function Heartbeat({ agentCount }: HeartbeatProps) {
       }
       ctx.stroke()
 
-      // Leading dot
-      const leadProgress = (1) * 2.5 + t
+      const leadProgress = 2.5 + t
       const leadY = midY - ekg(leadProgress)
       ctx.beginPath()
       ctx.fillStyle = '#4700DE'
       ctx.arc(W - 2, leadY, 3, 0, Math.PI * 2)
       ctx.fill()
-
-      // Outer glow on dot
       ctx.beginPath()
       ctx.fillStyle = 'rgba(71, 0, 222, 0.15)'
       ctx.arc(W - 2, leadY, 8, 0, Math.PI * 2)
@@ -97,25 +112,58 @@ export function Heartbeat({ agentCount }: HeartbeatProps) {
   }, [])
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Central orb */}
-      <div className="relative">
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-accent/20 via-accent/10 to-transparent flex items-center justify-center animate-[pulse-glow_3s_ease-in-out_infinite]">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent/30 to-accent/5 flex items-center justify-center backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-full bg-accent/90 flex items-center justify-center shadow-[0_0_30px_rgba(71,0,222,0.4)]">
-              <span className="text-[18px] font-bold text-white">{agentCount}</span>
+    <div className="relative">
+      {/* Agent cards positioned around the heartbeat */}
+      {deployedAgents.map((agent, i) => (
+        <button
+          key={agent.id}
+          onClick={() => navigate(`/agents/${agent.id}`)}
+          className={cn(
+            'absolute w-[180px] pointer-events-auto',
+            'bg-surface/95 backdrop-blur-sm border border-border-subtle rounded-xl px-3.5 py-3 shadow-[var(--shadow-card)]',
+            'hover:shadow-[var(--shadow-card-hover)] hover:border-accent/20 transition-all duration-300 cursor-pointer text-left group',
+            CARD_POSITIONS[i % CARD_POSITIONS.length],
+          )}
+          style={{ animationDelay: `${i * 100}ms` }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className={cn('w-2 h-2 rounded-full shrink-0', STATUS_COLORS[agent.status])} />
+            <span className="text-[12px] font-semibold text-text-1 truncate">{agent.name}</span>
+          </div>
+          <div className="flex items-center gap-3 text-[11px] tabular-nums">
+            <div>
+              <span className="text-text-3">Runs </span>
+              <span className="font-semibold text-text-1">{agent.metrics.totalRuns.toLocaleString()}</span>
+            </div>
+            <div>
+              <span className="text-text-3">OK </span>
+              <span className="font-semibold text-success">{formatPercent(agent.metrics.successRate)}</span>
+            </div>
+          </div>
+          <div className="mt-1.5 text-[11px]">
+            <span className="text-text-3">Saved </span>
+            <span className="font-semibold text-accent">{formatCurrency(agent.metrics.laborSavedUsd)}</span>
+          </div>
+        </button>
+      ))}
+
+      {/* Central orb + EKG */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="relative">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent/20 via-accent/10 to-transparent flex items-center justify-center animate-[pulse-glow_3s_ease-in-out_infinite]">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent/30 to-accent/5 flex items-center justify-center backdrop-blur-sm">
+              <div className="w-10 h-10 rounded-full bg-accent/90 flex items-center justify-center shadow-[0_0_30px_rgba(71,0,222,0.4)]">
+                <span className="text-[16px] font-bold text-white">{deployedAgents.length}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* EKG trace */}
-      <canvas ref={canvasRef} className="opacity-80" />
+        <canvas ref={canvasRef} className="opacity-80" />
 
-      {/* Label */}
-      <div className="text-center">
-        <div className="text-[11px] font-semibold text-accent uppercase tracking-[0.08em]">Hive Heartbeat</div>
-        <div className="text-[12px] text-text-3 mt-0.5">All systems operational</div>
+        <div className="text-center">
+          <div className="text-[12px] text-text-3">All systems operational</div>
+        </div>
       </div>
     </div>
   )
