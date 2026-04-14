@@ -204,32 +204,38 @@ function OrgChart({ members, label, variant }: { members: (OrgMember & { isAgent
         <div className="w-px h-4 bg-border" />
       </div>
 
-      {/* Reports */}
-      <div className="flex flex-wrap justify-center gap-2.5">
+      {/* Reports — use grid to keep cards neatly sized */}
+      <div className={cn(
+        'grid gap-2 justify-items-center',
+        rest.length <= 3 ? 'grid-cols-3' : rest.length <= 5 ? 'grid-cols-5' : 'grid-cols-3',
+      )}>
         {rest.map((m, i) => (
           <div
             key={i}
             className={cn(
-              'rounded-xl px-3 py-2.5 text-center border min-w-[110px]',
+              'rounded-xl px-2.5 py-2 text-center border w-full',
               m.isAgent
                 ? 'bg-accent-subtle border-accent/20 shadow-[0_0_12px_rgba(71,0,222,0.08)]'
                 : variant === 'before' && !m.retained
-                  ? 'bg-surface border-danger/15 opacity-50 line-through decoration-danger/30'
+                  ? 'bg-surface border-danger/15 opacity-40'
                   : 'bg-surface border-border shadow-[var(--shadow-card)]',
             )}
           >
             <div className={cn(
-              'w-7 h-7 rounded-full flex items-center justify-center mx-auto mb-1.5',
+              'w-6 h-6 rounded-full flex items-center justify-center mx-auto mb-1',
               m.isAgent ? 'bg-accent' : 'bg-background',
             )}>
               {m.isAgent ? (
-                <Bot className="w-3.5 h-3.5 text-white" />
+                <Bot className="w-3 h-3 text-white" />
               ) : (
-                <span className="text-[10px] font-bold text-text-2">{m.name.split(' ').map(w => w[0]).join('')}</span>
+                <span className="text-[9px] font-bold text-text-2">{m.name.split(' ').map(w => w[0]).join('')}</span>
               )}
             </div>
-            <div className={cn('text-[11px] font-semibold', m.isAgent ? 'text-accent' : 'text-text-1')}>{m.name}</div>
-            <div className="text-[9px] text-text-3 leading-tight mt-0.5">{m.title}</div>
+            <div className={cn(
+              'text-[10px] font-semibold truncate',
+              m.isAgent ? 'text-accent' : variant === 'before' && !m.retained ? 'text-text-3 line-through decoration-danger/40' : 'text-text-1',
+            )}>{m.name}</div>
+            <div className="text-[8px] text-text-3 leading-tight mt-0.5 truncate">{m.title}</div>
           </div>
         ))}
       </div>
@@ -346,10 +352,8 @@ export function LegalBlueprint({ agents: deptAgents }: Props) {
           <div className="grid grid-cols-2 gap-6">
             {/* Before org */}
             <div className="border border-border rounded-xl p-5">
-              <div className="flex items-center justify-between mb-2">
-                <OrgChart members={BEFORE_ORG} label="Current Team — 10 Members" variant="before" />
-              </div>
-              <div className="mt-4 flex items-center justify-center gap-2 bg-danger-subtle/40 rounded-lg px-3 py-2 border border-danger/10">
+              <OrgChart members={BEFORE_ORG} label="Current Team — 10 Members" variant="before" />
+              <div className="mt-5 flex items-center justify-center gap-2 bg-danger-subtle/40 rounded-lg px-3 py-2 border border-danger/10">
                 <Users className="w-3.5 h-3.5 text-danger" />
                 <span className="text-[12px] font-semibold text-danger">10 FTEs</span>
                 <span className="text-[11px] text-text-3 mx-1">&middot;</span>
@@ -359,10 +363,8 @@ export function LegalBlueprint({ agents: deptAgents }: Props) {
 
             {/* After org */}
             <div className="border border-accent/15 rounded-xl p-5 bg-accent-subtle/10">
-              <div className="flex items-center justify-between mb-2">
-                <OrgChart members={AFTER_ORG} label="Transformed Team — 3 Members + 1 Agent" variant="after" />
-              </div>
-              <div className="mt-4 flex items-center justify-center gap-2 bg-success-subtle/40 rounded-lg px-3 py-2 border border-success/10">
+              <OrgChart members={AFTER_ORG} label="Transformed Team — 3 Members + 1 Agent" variant="after" />
+              <div className="mt-5 flex items-center justify-center gap-2 bg-success-subtle/40 rounded-lg px-3 py-2 border border-success/10">
                 <div className="flex items-center gap-1">
                   <Users className="w-3.5 h-3.5 text-success" />
                   <span className="text-[12px] font-semibold text-success">3 FTEs</span>
