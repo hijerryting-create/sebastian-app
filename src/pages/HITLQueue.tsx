@@ -65,6 +65,7 @@ export function HITLQueue() {
 
 export function HITLReview() {
   const { itemId } = useParams()
+  const navigate = useNavigate()
   const item = hitlItems.find(h => h.id === itemId)
 
   if (!item) {
@@ -100,13 +101,25 @@ export function HITLReview() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-success text-white text-[13px] font-semibold rounded-full hover:opacity-90 transition-opacity">
+        <button
+          onClick={() => { alert(`Approved: ${item.id}`); navigate('/hitl') }}
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-success text-white text-[13px] font-semibold rounded-full hover:opacity-90 transition-opacity"
+        >
           <CheckCircle className="w-4 h-4" />
           Approve
         </button>
-        <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-danger text-white text-[13px] font-semibold rounded-full hover:opacity-90 transition-opacity">
+        <button
+          onClick={() => { alert(`Rejected: ${item.id}`); navigate('/hitl') }}
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-danger text-white text-[13px] font-semibold rounded-full hover:opacity-90 transition-opacity"
+        >
           <XCircle className="w-4 h-4" />
           Reject
+        </button>
+        <button
+          onClick={() => navigate('/hitl')}
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-surface border border-border text-text-2 text-[13px] font-semibold rounded-full hover:bg-background transition-colors"
+        >
+          Back to Queue
         </button>
       </div>
     </div>

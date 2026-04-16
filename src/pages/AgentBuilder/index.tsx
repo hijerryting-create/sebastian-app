@@ -14,7 +14,10 @@ export function AgentLibrary() {
           <h1 className="text-[28px] font-bold text-text-1 tracking-[-0.03em]">Agent Builder</h1>
           <p className="text-[15px] text-text-2 mt-2">Design, configure, and deploy AI agents.</p>
         </div>
-        <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white text-[13px] font-semibold rounded-full hover:bg-accent-hover transition-colors duration-300">
+        <button
+          onClick={() => alert('Agent creation wizard — select a template, configure triggers, define policies, and deploy.')}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white text-[13px] font-semibold rounded-full hover:bg-accent-hover transition-colors duration-300"
+        >
           <Plus className="w-4 h-4" />
           New Agent
         </button>
